@@ -28,20 +28,28 @@ namespace RealmTest
             Task.Run(() =>
             {
                 _taskProcess = true;
-                do
-                {
-                    Task t1 = Task.Run(AddClass<Class1>).ContinueWith(ModifyClass<Class1>).ContinueWith(DeleteClass<Class1>);
-                    Task t2 = Task.Run(AddClass<Class2>).ContinueWith(ModifyClass<Class2>).ContinueWith(DeleteClass<Class2>);
-                    Task t3 = Task.Run(AddClass<Class3>).ContinueWith(ModifyClass<Class3>).ContinueWith(DeleteClass<Class3>);
-                    Task t4 = Task.Run(AddClass<Class4>).ContinueWith(ModifyClass<Class4>).ContinueWith(DeleteClass<Class4>);
-                    Task t5 = Task.Run(AddClass<Class5>).ContinueWith(ModifyClass<Class5>).ContinueWith(DeleteClass<Class5>);
-                    Task.WaitAll(t1, t2, t3, t4, t5);
-                    Task t6 = Task.Run(DeleteSubClass<SubClass1>);
-                    Task t7 = Task.Run(DeleteSubClass<SubClass2>);
-                    Task.WaitAll(t6, t7);
-                } while (_taskProcess);
-                GC.Collect();
+                ClearData();
+
+                Task.Run(AddClass<Class1>).ContinueWith(ModifyClass<Class1>);
+                Task.Run(AddClass<Class2>).ContinueWith(ModifyClass<Class2>);
+                Task.Run(AddClass<Class3>).ContinueWith(ModifyClass<Class3>);
+                Task.Run(AddClass<Class4>).ContinueWith(ModifyClass<Class4>);
+                Task.Run(AddClass<Class5>).ContinueWith(ModifyClass<Class5>);
             });
+        }
+
+        /// <summary>
+        /// Clear all data before starting test
+        /// </summary>
+        private void ClearData()
+        {
+            DeleteClass<Class1>();
+            DeleteClass<Class2>();
+            DeleteClass<Class3>();
+            DeleteClass<Class4>();
+            DeleteClass<Class5>();
+            DeleteSubClass<SubClass1>();
+            DeleteSubClass<SubClass2>();
         }
 
         /// <summary>
@@ -53,7 +61,7 @@ namespace RealmTest
             var realm = RealmProvider.GetRealm();           
             realm.Write(() => realm.RemoveAll<T>());
             realm.Refresh();
-            realm.Dispose();
+            realm.TryDispose();
         }
 
         /// <summary>
@@ -61,12 +69,12 @@ namespace RealmTest
         /// </summary>
         /// <typeparam name="T">ISubClass</typeparam>
         /// <param name="t">Task</param>
-        private void DeleteClass<T>(Task t) where T : RealmObject, IClass
+        private void DeleteClass<T>() where T : RealmObject, IClass
         {
             var realm = RealmProvider.GetRealm();           
             realm.Write(() => realm.RemoveAll<T>());
             realm.Refresh();
-            realm.Dispose();
+            realm.TryDispose();
         }
 
         /// <summary>
@@ -76,13 +84,19 @@ namespace RealmTest
         /// <param name="t">Task</param>
         private void ModifyClass<T>(Task t) where T : RealmObject, IClass
         {
-            var realm = RealmProvider.GetRealm();
-            foreach (var c in realm.All<T>())
+            do
             {
-                realm.Write(() =>c.MyProperty1 = Guid.NewGuid().ToString());
-            }
-            realm.Refresh();
-            realm.Dispose();
+                var realm = RealmProvider.GetRealm();
+                foreach (var c in realm.All<T>())
+                {
+                    realm.Write(() =>
+                    {
+                        c.MyProperty1 = Guid.NewGuid().ToString();
+                    });
+                }
+                realm.Refresh();
+                realm.TryDispose();
+            } while (_taskProcess);
         }
 
         /// <summary>
@@ -111,7 +125,7 @@ namespace RealmTest
                     realm.Add<T>(obj, true);
                 });
                 realm.Refresh();
-                realm.Dispose();
+                realm.TryDispose();
             }
         }
 

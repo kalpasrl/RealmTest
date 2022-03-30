@@ -60,6 +60,7 @@ namespace RealmTest
                 }
                 realm = Realm.GetInstance(_realmConfiguration);
             }
+            
             AddInstance(callingMethod, callingFilePath, realm);
             return realm;
         }

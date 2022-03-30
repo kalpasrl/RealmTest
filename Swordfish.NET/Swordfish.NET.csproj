@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <CodeAnalysisRuleSet>..\.sonarlint\vimar-viewcsharp.ruleset</CodeAnalysisRuleSet>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+      <LangVersion>8.0</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+      <DebugType></DebugType>
+      <LangVersion>8.0</LangVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <AdditionalFiles Include="..\.sonarlint\vimar-view\CSharp\SonarLint.xml" Link="SonarLint.xml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
+    </ItemGroup>
+
+</Project>

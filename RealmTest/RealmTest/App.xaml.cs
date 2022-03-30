@@ -1,5 +1,7 @@
-﻿using Realms;
+﻿using Nito.AsyncEx;
+using Realms;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -35,17 +37,17 @@ namespace RealmTest
         private void Finalize()
         {
             // Disposing all token
-            _token1.Dispose();
-            _token2.Dispose();
-            _token3.Dispose();
-            _token4.Dispose();
-            _token5.Dispose();
+            _token1.TryDispose();
+            _token2.TryDispose();
+            _token3.TryDispose();
+            _token4.TryDispose();
+            _token5.TryDispose();
 
             // Disponse instance of Realm
             _realm.Refresh();
-            _realm.Dispose();
+            _realm.TryDispose();
 
-            RealmProvider.Compact();
+            RealmProvider.Compact();            
         }
 
         protected override void OnResume()
@@ -68,7 +70,14 @@ namespace RealmTest
                 LogBroker.Instance.TraceDebug($"{typeof(T)}: error {error.Message}");
             }
 
-            LogBroker.Instance.TraceDebug($"{typeof(T)}: {sender.Count} - inserted: {changes?.InsertedIndices.Count()}, modified: {changes?.ModifiedIndices.Count()}, deleted: {changes?.DeletedIndices.Count()}");
+            if (sender != null)
+            {
+                foreach (var c in sender)
+                {
+                }
+
+                LogBroker.Instance.TraceDebug($"{typeof(T)}: {sender.Count} - inserted: {changes?.InsertedIndices.Count()}, modified: {changes?.ModifiedIndices.Count()}, deleted: {changes?.DeletedIndices.Count()}");
+            }
         }
 
 
@@ -77,6 +86,13 @@ namespace RealmTest
         /// </summary>
         private void CreateSubscriptions()
         {
+            // AsyncContextThread
+            //_token1 = await RealmAsyncServiceProvider.Instance.QueueSubscriptionAsync(r => r.All<Class1>(), TraceLog);
+            //_token2 = await RealmAsyncServiceProvider.Instance.QueueSubscriptionAsync(r => r.All<Class2>(), TraceLog);
+            //_token3 = await RealmAsyncServiceProvider.Instance.QueueSubscriptionAsync(r => r.All<Class3>(), TraceLog);
+            //_token4 = await RealmAsyncServiceProvider.Instance.QueueSubscriptionAsync(r => r.All<Class4>(), TraceLog);
+            //_token5 = await RealmAsyncServiceProvider.Instance.QueueSubscriptionAsync(r => r.All<Class5>(), TraceLog);
+
             _token1 = _realm.All<Class1>().SubscribeForNotifications(TraceLog);
             _token2 = _realm.All<Class2>().SubscribeForNotifications(TraceLog);
             _token3 = _realm.All<Class3>().SubscribeForNotifications(TraceLog);
